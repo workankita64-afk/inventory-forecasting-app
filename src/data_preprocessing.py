@@ -16,31 +16,30 @@ def load_csv_from_path(path: str, parse_dates=['Date']) -> pd.DataFrame:
     return df
 
 def basic_cleaning(df: pd.DataFrame) -> pd.DataFrame:
-    # Ensure column types
-    df = df.copy()
-    # Normalize column names (strip)
-    df.columns = [c.strip() for c in df.columns]
-    # Ensure Date
-    if 'Date' in df.columns:
-        df['Date'] = pd.to_datetime(df['Date'])
-    # Numeric conversions and fillna defaults
-    numeric_cols = [
-        'Daily_Sales','Opening_Stock','Closing_Stock','Replenishment_Qty',
-        'New_Order_Qty','Stock_Coverage_Days','Service_Level','Price_Index',
-        'Threshold','Lead_Time_Days','Regional_Weight','Weather_Factor',
-        'Weekend_Factor','Promotion_Factor','Economic_Factor','Adjusted_Sales',
-        'Inventory_Turnover','Inventory_Turnover_Rate','Efficiency_Score','Profit_Margin'
-    ]
-    for c in numeric_cols:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors='coerce').fillna(0)
-
-    # Fill string columns
-    for c in ['Product','Region','Festival','Stock_Out_Flag','Stock_Recommendation']:
-        if c in df.columns:
-            df[c] = df[c].astype(str).fillna('NA')
-
+    """
+    Cleans the raw dataframe by:
+    - Parsing dates correctly (handles multiple date formats, day-first)
+    - Ensuring Daily_Sales is numeric
+    - Dropping rows with missing essential values
+    """
+    print("Cleaning data...")
+    
+    # ✅ Correct date parsing
+    df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors="coerce", format='mixed')
+    
+    # Keep only valid dates
+    df = df.dropna(subset=["Date"])
+    
+    # Convert Daily_Sales to numeric
+    df["Daily_Sales"] = pd.to_numeric(df["Daily_Sales"], errors="coerce")
+    df = df.dropna(subset=["Daily_Sales"])
+    
+    # Remove negative or impossible sales
+    df = df[df["Daily_Sales"] >= 0]
+    
+    print("✅ Data cleaned successfully.")
     return df
+
 
 def aggregate_to_daily(df: pd.DataFrame) -> pd.DataFrame:
     """

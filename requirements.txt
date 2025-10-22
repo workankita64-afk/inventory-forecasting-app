@@ -1,1 +1,11 @@
+pandas
+numpy
+scikit-learn
+statsmodels
+prophet
+streamlit
+fastapi
+uvicorn
+google-cloud-storage
+google-auth
 
